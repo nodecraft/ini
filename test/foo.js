@@ -237,6 +237,14 @@ test('defaulting unset value to true', function(t){
 	t.end();
 });
 
+test('ignores invalid line (=)', function(t){
+	t.same(ini.decode('foo=true' + eol + '=' + eol + 'bar=false' + eol), {
+		foo: true,
+		bar: false
+	});
+	t.end();
+});
+
 test("unsafe escape values", function(t){
 	t.equal(ini.unsafe(''), '');
 	t.equal(ini.unsafe('x;y'), 'x');
