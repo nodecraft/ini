@@ -9,19 +9,23 @@
   },
   "main": "ini.js",
   "scripts": {
-    "pretest": "standard ini.js",
+    "pretest": "eslint ini.js",
     "test": "tap test/*.js --100 -J",
     "preversion": "npm test",
     "postversion": "npm publish",
     "postpublish": "git push origin --all; git push origin --tags"
   },
   "engines": {
-    "node": "*"
+    "node": ">=8.11.1",
+    "npm": ">=5.10.0"
   },
   "dependencies": {},
   "devDependencies": {
-    "standard": "^10.0.3",
-    "tap": "^10.7.3 || 11"
+    "eslint": "6.5.1",
+    "eslint-config-nodecraft": "1.7.3",
+    "eslint-plugin-json": "1.4.0",
+    "eslint-plugin-node": "10.0.0",
+    "tap": "^14"
   },
   "license": "ISC",
   "files": [
