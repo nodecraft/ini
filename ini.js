@@ -16,7 +16,8 @@ function encode(obj, opt){
 	if(typeof opt === 'string'){
 		opt = {
 			section: opt,
-			whitespace: false
+			whitespace: false,
+			inlineArrays: false
 		};
 	}else{
 		opt = opt || {};
@@ -27,7 +28,12 @@ function encode(obj, opt){
 	for(const [key, val] of Object.entries(obj)){
 		if(val && Array.isArray(val)){
 			val.forEach(function(item){
-				out += safe(key + '[]') + separator + safe(item) + eol;
+				if(opt.inlineArrays){
+					out += safe(key) + separator + safe(item) + eol;
+				}else{
+					// real code
+					out += safe(key + '[]') + separator + safe(item) + eol;
+				}
 			});
 		}else if(val && typeof val === 'object'){
 			children.push(key);
@@ -45,7 +51,8 @@ function encode(obj, opt){
 		const section = (opt.section ? opt.section + '.' : '') + parsedSection;
 		const child = encode(obj[key], {
 			section: section,
-			whitespace: opt.whitespace
+			whitespace: opt.whitespace,
+			inlineArrays: opt.inlineArrays
 		});
 		if(out.length && child.length){
 			out += eol;
@@ -65,7 +72,7 @@ function dotSplit(str){
 		});
 }
 
-function decode(str){
+function decode(str, opt = {}){
 	const out = {};
 	let ref = out;
 	let section = null;
@@ -98,6 +105,8 @@ function decode(str){
 			}else if(!Array.isArray(ref[key])){
 				ref[key] = [ref[key]];
 			}
+		}else if(opt.inlineArrays && typeof(ref[key]) !== 'undefined' && !Array.isArray(ref[key])){
+			ref[key] = [ref[key]];
 		}
 
 		// safeguard against resetting a previously defined

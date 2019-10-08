@@ -7,7 +7,9 @@ const tap = require("tap");
 const test = tap.test;
 
 const fixture = path.resolve(__dirname, "./fixtures/foo.ini"),
-	data = fs.readFileSync(fixture, "utf8");
+	fixtureInlineArrays = path.resolve(__dirname, "./fixtures/fooInlineArrays.ini"),
+	data = fs.readFileSync(fixture, "utf8"),
+	dataInlineArrays = fs.readFileSync(fixtureInlineArrays, "utf8");
 
 const eol = require('os').EOL;
 
@@ -35,6 +37,39 @@ const expectE = 'o=p' + eol
             + '"[]"=a square?' + eol
             + 'cr[]=four' + eol
             + 'cr[]=eight' + eol + eol
+            + '[a.b.c]' + eol
+            + 'e=1' + eol
+            + 'j=2' + eol + eol
+            + '[x\\.y\\.z]' + eol
+            + 'x.y.z=xyz' + eol + eol
+            + '[x\\.y\\.z.a\\.b\\.c]' + eol
+            + 'a.b.c=abc' + eol
+            + 'nocomment=this\\; this is not a comment' + eol
+            + 'noHashComment=this\\# this is not a comment' + eol,
+	expectEInlineArrays = 'o=p' + eol
+            + 'a with spaces=b  c' + eol
+            + '" xa  n          p "="\\"\\r\\nyoyoyo\\r\\r\\n"' + eol
+            + '"[disturbing]"=hey you never know' + eol
+            + 's=something' + eol
+            + 's1="something\'' + eol
+            + 's2=something else' + eol
+            + 'zr=deedee' + eol
+            + 'ar=one' + eol
+            + 'ar=three' + eol
+            + 'ar=this is included' + eol
+            + 'br=warm' + eol
+            + 'eq="eq=eq"' + eol + eol
+            + '[a]' + eol
+            + 'av=a val' + eol
+            + 'e={ o: p, a: '
+            + '{ av: a val, b: { c: { e: "this [value]" '
+            + '} } } }' + eol
+            + 'j="\\"{ o: \\"p\\", a: { av:'
+            + ' \\"a val\\", b: { c: { e: \\"this [value]'
+            + '\\" } } } }\\""' + eol
+            + '"[]"=a square?' + eol
+            + 'cr=four' + eol
+            + 'cr=eight' + eol + eol
             + '[a.b.c]' + eol
             + 'e=1' + eol
             + 'j=2' + eol + eol
@@ -80,6 +115,42 @@ const expectE = 'o=p' + eol
 			}
 		}
 	},
+	expectDInlineArrays = {
+		o: 'p',
+		'a with spaces': 'b  c',
+		" xa  n          p ": '"\r\nyoyoyo\r\r\n',
+		'[disturbing]': 'hey you never know',
+		's': 'something',
+		's1': '"something\'',
+		's2': 'something else',
+		'zr': 'deedee',
+		'ar': ['one', 'three', 'this is included'],
+		'br': ['cold', 'warm'],
+		'eq': 'eq=eq',
+		a: {
+			av: 'a val',
+			e: '{ o: p, a: { av: a val, b: { c: { e: "this [value]" } } } }',
+			j: '"{ o: "p", a: { av: "a val", b: { c: { e: "this [value]" } } } }"',
+			"[]": "a square?",
+			cr: [
+				'four', 'eight'
+			],
+			b: {
+				c: {
+					e: '1',
+					j: '2'
+				}
+			}
+		},
+		'x.y.z': {
+			'x.y.z': 'xyz',
+			'a.b.c': {
+				'a.b.c': 'abc',
+				'nocomment': 'this; this is not a comment',
+				noHashComment: 'this# this is not a comment'
+			}
+		}
+	},
 	expectF = '[prefix.log]' + eol
             + 'type=file' + eol + eol
             + '[prefix.log.level]' + eol
@@ -97,9 +168,27 @@ test("decode from file", function(t){
 	t.end();
 });
 
-test("encode from data", function(t){
-	let e = ini.encode(expectD);
+test("decode from file inlineArrays=true", function(t){
+	const d = ini.decode(dataInlineArrays, {inlineArrays: true});
+	t.deepEqual(d, expectDInlineArrays);
+	t.end();
+});
+
+test("encode from data, inlineArrays=false", function(t){
+	let e = ini.encode(expectD, {inlineArrays: false});
 	t.deepEqual(e, expectE);
+
+	const obj = {log: { type: 'file', level: {label: 'debug', value: 10} } };
+	e = ini.encode(obj);
+	t.notEqual(e.slice(0, 1), eol, 'Never a blank first line');
+	t.notEqual(e.slice(-2), eol + eol, 'Never a blank final line');
+
+	t.end();
+});
+
+test("encode from data, inlineArrays=true", function(t){
+	let e = ini.encode(expectD, {inlineArrays: true});
+	t.deepEqual(e, expectEInlineArrays);
 
 	const obj = {log: { type: 'file', level: {label: 'debug', value: 10} } };
 	e = ini.encode(obj);

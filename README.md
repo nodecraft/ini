@@ -1,7 +1,25 @@
 An ini format parser and serializer for node.
+[![Build Status](https://github.com/nodecraft/ini/workflows/Test/badge.svg)](https://github.com/nodecraft/ini/actions?workflow=Test)
+
 
 Sections are treated as nested objects.  Items before the first
 heading are saved on the object directly.
+
+## Differences from https://github.com/npm/ini
+### Code Improvements
+- Tests fixed for EOL on different systems
+- Readability fixes
+- Modernised code
+
+### New `inlineArrays` option
+An `inlineArrays` option to parse the following. This is common in Unreal Engine games.
+```ini
+    sServerAdmins=12345
+    sServerAdmins=54321
+    sServerAdmins=09876
+```
+Previously, only the last `sServerAdmins` would be retained and the previous ones would be stripped. Now, when this option is passed, this is parsed into an array:
+`[12345, 54321, 09876]`
 
 ## Usage
 
@@ -55,11 +73,16 @@ to the filesystem with the following content:
 
 ## API
 
-### decode(inistring)
+### decode(inistring, [options])
 
 Decode the ini-style formatted `inistring` into a nested object.
 
-### parse(inistring)
+The `options` object may contain the following:
+
+* `inlineArrays` Whether to parse duplicate key values as an array.
+  See usage above for more info.
+
+### parse(inistring, [options])
 
 Alias for `decode(inistring)`
 
@@ -74,6 +97,8 @@ The `options` object may contain the following:
 
 * `section` A string which will be the first `section` in the encoded
   ini data.  Defaults to none.
+* `inlineArrays` Whether to parse duplicate key values as an array.
+  See usage above for more info.
 * `whitespace` Boolean to specify whether to put whitespace around the
   `=` character.  By default, whitespace is omitted, to be friendly to
   some persnickety old parsers that don't tolerate it well.  But some
