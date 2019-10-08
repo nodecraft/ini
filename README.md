@@ -1,5 +1,7 @@
 An ini format parser and serializer for node.
+
 [![Build Status](https://github.com/nodecraft/ini/workflows/Test/badge.svg)](https://github.com/nodecraft/ini/actions?workflow=Test)
+[![Coverage Status](https://coveralls.io/repos/github/nodecraft/ini/badge.svg?branch=master)](https://coveralls.io/github/nodecraft/ini?branch=master)
 
 
 Sections are treated as nested objects.  Items before the first
