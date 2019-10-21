@@ -1,10 +1,10 @@
 {
-	"name": "@nodecraft/css-loader",
+	"name": "@nodecraft/ini",
 	"version": "1.4.0",
 	"description": "An ini encoder/decoder for node",
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/isaacs/ini.git"
+		"url": "git://github.com/nodecraft/ini.git"
 	},
 	"license": "ISC",
 	"author": "Isaac Z. Schlueter <i@izs.me> (http://blog.izs.me/)",
@@ -14,7 +14,6 @@
 	"main": "ini.js",
 	"scripts": {
 		"coverage": "tap test/*.js --100 --coverage-report=lcov -J",
-		"postpublish": "git push origin --all; git push origin --tags",
 		"pretest": "eslint ini.js",
 		"test": "tap test/*.js --100 -J",
 		"preversion": "npm test",
