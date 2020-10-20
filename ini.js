@@ -73,6 +73,8 @@ function dotSplit(str){
 }
 
 function decode(str, opt = {}){
+	const defaultValue = typeof opt.defaultValue !== 'undefined' ? opt.defaultValue : '';
+
 	const out = {};
 	let ref = out;
 	let section = null;
@@ -90,7 +92,7 @@ function decode(str, opt = {}){
 			return;
 		}
 		let key = unsafe(match[2]);
-		let value = match[3] ? unsafe(match[3]) : true;
+		let value = match[3] ? unsafe(match[3]) : defaultValue;
 		switch(value){
 			case 'true':
 			case 'false':

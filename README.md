@@ -23,6 +23,14 @@ An `inlineArrays` option to parse the following. This is common in Unreal Engine
 Previously, only the last `sServerAdmins` would be retained and the previous ones would be stripped. Now, when this option is passed, this is parsed into an array:
 `[12345, 54321, 09876]`
 
+### New `defaultValue` option
+An `defaultValue` option when decoding to use when encountering a key without a value.
+```ini
+    key=
+    secondkey
+```
+Previously both keys would contain the value `true`, now both keys would contain whatever this option is set to, or an empty string if this option is not set. This is a breaking change, and will decode some inputs differently.
+
 ## Usage
 
 Consider an ini-file `config.ini` that looks like this:

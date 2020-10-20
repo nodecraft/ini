@@ -25,7 +25,8 @@ const expectE = 'o=p' + eol
             + 'ar[]=three' + eol
             + 'ar[]=this is included' + eol
             + 'br=warm' + eol
-            + 'eq="eq=eq"' + eol + eol
+            + 'eq="eq=eq"' + eol
+            + 'nv=' + eol + eol
             + '[a]' + eol
             + 'av=a val' + eol
             + 'e={ o: p, a: '
@@ -58,7 +59,8 @@ const expectE = 'o=p' + eol
             + 'ar=three' + eol
             + 'ar=this is included' + eol
             + 'br=warm' + eol
-            + 'eq="eq=eq"' + eol + eol
+            + 'eq="eq=eq"' + eol
+            + 'nv=' + eol + eol
             + '[a]' + eol
             + 'av=a val' + eol
             + 'e={ o: p, a: '
@@ -91,6 +93,7 @@ const expectE = 'o=p' + eol
 		'ar': ['one', 'three', 'this is included'],
 		'br': 'warm',
 		'eq': 'eq=eq',
+		'nv': '',
 		a: {
 			av: 'a val',
 			e: '{ o: p, a: { av: a val, b: { c: { e: "this [value]" } } } }',
@@ -127,6 +130,7 @@ const expectE = 'o=p' + eol
 		'ar': ['one', 'three', 'this is included'],
 		'br': ['cold', 'warm'],
 		'eq': 'eq=eq',
+		'nv': '',
 		a: {
 			av: 'a val',
 			e: '{ o: p, a: { av: a val, b: { c: { e: "this [value]" } } } }',
@@ -229,8 +233,16 @@ test('array destructing', function(t){
 	t.end();
 });
 
-test('defaulting unset value to true', function(t){
+test('defaulting unset value to an empty string', function(t){
 	t.same(ini.decode('foo' + eol + 'bar=false' + eol), {
+		foo: '',
+		bar: false
+	});
+	t.end();
+});
+
+test('defaulting unset value to specified value', function(t){
+	t.same(ini.decode('foo' + eol + 'bar=false' + eol, {defaultValue: true}), {
 		foo: true,
 		bar: false
 	});
