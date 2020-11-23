@@ -95,7 +95,11 @@ function decode(str, opt = {}){
 		let value = match[3] ? unsafe(match[3]) : defaultValue;
 		switch(value){
 			case 'true':
+			case 'True':
+			case 'TRUE':
 			case 'false':
+			case 'False':
+			case 'FALSE':
 			case 'null': value = JSON.parse(value);
 		}
 
