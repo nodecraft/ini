@@ -100,7 +100,7 @@ function decode(str, opt = {}){
 			case 'false':
 			case 'False':
 			case 'FALSE':
-			case 'null': value = JSON.parse(value);
+			case 'null': value = JSON.parse(value.toLowerCase());
 		}
 
 		// Convert keys with '[]' suffix to an array
