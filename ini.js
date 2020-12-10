@@ -1,4 +1,5 @@
 'use strict';
+/* eslint-disable no-use-before-define */
 exports.parse = exports.decode = decode;
 
 exports.stringify = exports.encode = encode;
@@ -20,7 +21,7 @@ function encode(obj, opt){
 			inlineArrays: false
 		};
 	}else{
-		opt = opt || {};
+		opt = opt || Object.create(null);
 		opt.whitespace = opt.whitespace === true;
 	}
 	const separator = opt.whitespace ? ' = ' : '=';
@@ -75,7 +76,7 @@ function dotSplit(str){
 function decode(str, opt = {}){
 	const defaultValue = typeof opt.defaultValue !== 'undefined' ? opt.defaultValue : '';
 
-	const out = {};
+	const out = Object.create(null);
 	let ref = out;
 	let section = null;
 	//          section       |key        = value
@@ -88,10 +89,17 @@ function decode(str, opt = {}){
 		if(!match){ return; }
 		if(match[1] !== undefined){
 			section = unsafe(match[1]);
-			ref = out[section] = out[section] || {};
+			if(section === '__proto__'){
+				// not allowed
+				// keep parsing the section, but don't attach it.
+				ref = Object.create(null);
+				return;
+			}
+			ref = out[section] = out[section] || Object.create(null);
 			return;
 		}
 		let key = unsafe(match[2]);
+		if(key === '__proto__'){ return; }
 		let value = match[3] ? unsafe(match[3]) : defaultValue;
 		switch(value){
 			case 'true':
@@ -106,6 +114,7 @@ function decode(str, opt = {}){
 		// Convert keys with '[]' suffix to an array
 		if(key.length > 2 && key.slice(-2) === '[]'){
 			key = key.substring(0, key.length - 2);
+			if(key === '__proto__'){ return; }
 			if(!ref[key]){
 				ref[key] = [];
 			}else if(!Array.isArray(ref[key])){
@@ -137,8 +146,9 @@ function decode(str, opt = {}){
 		const lastKey = parts.pop();
 		const unescapedLastKey = lastKey.replace(/\\\./g, '.');
 		parts.forEach(function(part){
+			if(part === '__proto__'){ return; }
 			if(!p[part] || typeof p[part] !== 'object'){
-				p[part] = {};
+				p[part] = Object.create(null);
 			}
 			p = p[part];
 		});
@@ -171,8 +181,8 @@ function safe(val){
 
 // unescapes the string val
 function unsafe(val){
-	const escapableChars = '\\;#',
-		commentChars = ';#';
+	const escapableChars = '\\;#';
+	const commentChars = ';#';
 
 	val = (val || '').trim();
 	if(isQuoted(val)){
