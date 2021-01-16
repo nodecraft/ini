@@ -1,15 +1,10 @@
 'use strict';
 /* eslint-disable no-use-before-define */
-exports.parse = exports.decode = decode;
-
-exports.stringify = exports.encode = encode;
-
-exports.safe = safe;
-exports.unsafe = unsafe;
+const {hasOwnProperty} = Object.prototype;
 
 const eol = require('os').EOL;
 
-function encode(obj, opt){
+const encode = (obj, opt) => {
 	const children = [];
 	let out = '';
 
@@ -28,14 +23,14 @@ function encode(obj, opt){
 
 	for(const [key, val] of Object.entries(obj)){
 		if(val && Array.isArray(val)){
-			val.forEach(function(item){
+			for(const item of val){
 				if(opt.inlineArrays){
 					out += safe(key) + separator + safe(item) + eol;
 				}else{
 					// real code
 					out += safe(key + '[]') + separator + safe(item) + eol;
 				}
-			});
+			}
 		}else if(val && typeof val === 'object'){
 			children.push(key);
 		}else{
@@ -43,11 +38,11 @@ function encode(obj, opt){
 		}
 	}
 
-	if(opt.section && out.length){
+	if(opt.section && out.length > 0){
 		out = '[' + safe(opt.section) + ']' + eol + out;
 	}
 
-	children.forEach(function(key){
+	for(const key of children){
 		const parsedSection = dotSplit(key).join('\\.');
 		const section = (opt.section ? opt.section + '.' : '') + parsedSection;
 		const child = encode(obj[key], {
@@ -55,51 +50,48 @@ function encode(obj, opt){
 			whitespace: opt.whitespace,
 			inlineArrays: opt.inlineArrays
 		});
-		if(out.length && child.length){
+		if(out.length > 0 && child.length > 0){
 			out += eol;
 		}
 		out += child;
-	});
+	}
 
 	return out;
-}
+};
 
-function dotSplit(str){
-	return str.replace(/\1/g, '\u0002LITERAL\\1LITERAL\u0002')
-		.replace(/\\\./g, '\u0001')
-		.split(/\./).map(function(part){
-			return part.replace(/\1/g, '\\.')
-				.replace(/\2LITERAL\\1LITERAL\2/g, '\u0001');
-		});
-}
+const dotSplit = str => str.replace(/\1/g, '\u0002LITERAL\\1LITERAL\u0002')
+	.replace(/\\\./g, '\u0001')
+	.split(/\./)
+	.map(part => part.replace(/\1/g, '\\.')
+		.replace(/\2LITERAL\\1LITERAL\2/g, '\u0001'));
 
-function decode(str, opt = {}){
+const decode = (str, opt = {}) => {
 	const defaultValue = typeof opt.defaultValue !== 'undefined' ? opt.defaultValue : '';
 
 	const out = Object.create(null);
 	let ref = out;
 	let section = null;
 	//          section       |key        = value
-	const re = /^\[([^\]]*)\]$|^([^=]+)(?:=(.*))?$/i;
-	const lines = str.split(/[\r\n]+/g);
-	const commentMatch = /^\s*[;#]/;
-	lines.forEach(function(line){
-		if(!line || line.match(commentMatch)){ return; }
+	const re = /^\[([^\]]*)]$|^([^=]+)(?:=(.*))?$/i;
+	const lines = str.split(/[\n\r]+/g);
+	const commentMatch = /^\s*[#;]/;
+	for(const line of lines){
+		if(!line || commentMatch.test(line)){ continue; }
 		const match = line.match(re);
-		if(!match){ return; }
+		if(!match){ continue; }
 		if(match[1] !== undefined){
 			section = unsafe(match[1]);
 			if(section === '__proto__'){
 				// not allowed
 				// keep parsing the section, but don't attach it.
 				ref = Object.create(null);
-				return;
+				continue;
 			}
 			ref = out[section] = out[section] || Object.create(null);
-			return;
+			continue;
 		}
 		let key = unsafe(match[2]);
-		if(key === '__proto__'){ return; }
+		if(key === '__proto__'){ continue; }
 		let value = match[3] ? unsafe(match[3]) : defaultValue;
 		switch(value){
 			case 'true':
@@ -113,9 +105,9 @@ function decode(str, opt = {}){
 
 		// Convert keys with '[]' suffix to an array
 		if(key.length > 2 && key.slice(-2) === '[]'){
-			key = key.substring(0, key.length - 2);
-			if(key === '__proto__'){ return; }
-			if(!ref[key]){
+			key = key.slice(0, Math.max(0, key.length - 2));
+			if(key === '__proto__'){ continue; }
+			if(!hasOwnProperty.call(ref, key)){
 				ref[key] = [];
 			}else if(!Array.isArray(ref[key])){
 				ref[key] = [ref[key]];
@@ -131,56 +123,58 @@ function decode(str, opt = {}){
 		}else{
 			ref[key] = value;
 		}
-	});
+	}
 
 	// {a:{y:1},"a.b":{x:2}} --> {a:{y:1,b:{x:2}}}
 	// use a filter to return the keys that have to be deleted.
-	Object.keys(out).filter(function(key){
-		if(!out[key] || typeof out[key] !== 'object' || Array.isArray(out[key])){
-			return false;
+	const remove = [];
+	for(const key of Object.keys(out)){
+		if(!hasOwnProperty.call(out, key) || typeof out[key] !== 'object' || Array.isArray(out[key])){
+			continue;
 		}
 		// see if the parent section is also an object.
 		// if so, add it to that, and mark this one for deletion
 		const parts = dotSplit(key);
-		let p = out;
+		let outPart = out;
+		console.log('parts', parts);
 		const lastKey = parts.pop();
 		const unescapedLastKey = lastKey.replace(/\\\./g, '.');
-		parts.forEach(function(part){
-			if(part === '__proto__'){ return; }
-			if(!p[part] || typeof p[part] !== 'object'){
-				p[part] = Object.create(null);
+		for(const part of parts){
+			if(part === '__proto__'){ continue; }
+			if(!hasOwnProperty.call(outPart, part) || typeof outPart[part] !== 'object'){
+				outPart[part] = Object.create(null);
 			}
-			p = p[part];
-		});
-		if(p === out && unescapedLastKey === lastKey){
-			return false;
+			outPart = outPart[part];
 		}
-		p[unescapedLastKey] = out[key];
-		return true;
-	}).forEach(function(del){
+		if(outPart === out && unescapedLastKey === lastKey){
+			continue;
+		}
+		outPart[unescapedLastKey] = out[key];
+		remove.push(key);
+	}
+
+	for(const del of remove){
 		delete out[del];
-	});
+	}
 
 	return out;
-}
+};
 
 // determines if string is encased in quotes
-function isQuoted(val){
-	return (val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"));
-}
+const isQuoted = val => (val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"));
 
 // escapes the string val such that it is safe to be used as a key or value in an ini-file. Basically escapes quotes
-function safe(val){
+const safe = (val) => {
 	// all kinds of values and keys
-	if(typeof val !== 'string' || val.match(/[=\r\n]/) || val.match(/^\[/) || (val.length > 1 && isQuoted(val)) || val !== val.trim()){
+	if(typeof val !== 'string' || /[\n\r=]/.test(val) || /^\[/.test(val) || (val.length > 1 && isQuoted(val)) || val !== val.trim()){
 		return JSON.stringify(val);
 	}
 	// comments
 	return val.replace(/;/g, '\\;').replace(/#/g, '\\#');
-}
+};
 
 // unescapes the string val
-function unsafe(val){
+const unsafe = (val) => {
 	const escapableChars = '\\;#';
 	const commentChars = ';#';
 
@@ -188,11 +182,11 @@ function unsafe(val){
 	if(isQuoted(val)){
 		// remove the single quotes before calling JSON.parse
 		if(val.charAt(0) === "'"){
-			val = val.substr(1, val.length - 2);
+			val = val.substr(1, val.length - 2); // eslint-disable-line unicorn/prefer-string-slice
 		}
 		try{
 			val = JSON.parse(val);
-		}catch(e){
+		}catch{
 			// we tried :(
 		}
 		return val;
@@ -200,22 +194,22 @@ function unsafe(val){
 	// walk the val to find the first not-escaped ; character
 	let isEscaping = false;
 	let escapedVal = '';
-	for(let i = 0, l = val.length; i < l; i++){
-		const c = val.charAt(i);
+	for(let i = 0, len = val.length; i < len; i++){
+		const char = val.charAt(i);
 		if(isEscaping){
 			// check if this character is an escapable character like \ or ; or #
-			if(escapableChars.indexOf(c) !== -1){
-				escapedVal += c;
+			if(escapableChars.includes(char)){
+				escapedVal += char;
 			}else{
-				escapedVal += '\\' + c;
+				escapedVal += '\\' + char;
 			}
 			isEscaping = false;
-		}else if(commentChars.indexOf(c) !== -1){
+		}else if(commentChars.includes(char)){
 			break;
-		}else if(c === '\\'){
+		}else if(char === '\\'){
 			isEscaping = true;
 		}else{
-			escapedVal += c;
+			escapedVal += char;
 		}
 	}
 	// we're still escaping - something isn't right. Close out with an escaped escape char
@@ -223,4 +217,13 @@ function unsafe(val){
 		escapedVal += '\\';
 	}
 	return escapedVal.trim();
-}
+};
+
+module.exports = {
+	parse: decode,
+	decode,
+	stringify: encode,
+	encode,
+	safe,
+	unsafe
+};
