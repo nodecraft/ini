@@ -31,6 +31,14 @@ An `defaultValue` option when decoding to use when encountering a key without a 
 ```
 Previously both keys would contain the value `true`, now both keys would contain whatever this option is set to, or an empty string if this option is not set. This is a breaking change, and will decode some inputs differently.
 
+## New `forceStringifyKeys` optoin
+Sometimes you need to write strings into an `ini` file with quotes around them, such as:
+```ini
+    key="some string"
+```
+By passing an array of `forceStringifyKeys`, you can specify which keys are forced stringified with `JSON.stringify` and therefore maintain their quotes.
+Note: This is pretty limited currently in that it doesn't account for the same key being in different sections, but covers our current use-case.
+
 ## Usage
 
 Consider an ini-file `config.ini` that looks like this:

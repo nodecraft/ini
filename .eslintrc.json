@@ -1,9 +1,10 @@
 {
 	"extends": [
-		"nodecraft"
+		"@nodecraft"
 	],
 	"plugins": [
 		"json",
-		"node"
+		"node",
+		"unicorn"
 	]
 }

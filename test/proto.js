@@ -1,7 +1,7 @@
 /* eslint no-proto: "off" */
 'use strict';
 const ini = require('../');
-const t = require('tap');
+const tap = require('tap');
 
 const data = `
 __proto__ = quux
@@ -24,37 +24,37 @@ foo = asdfasdf
 
 const res = ini.parse(data);
 
-t.deepEqual(res, Object.assign(Object.create(null), {
+tap.same(res, Object.assign(Object.create(null), {
 	'constructor.prototype.foo': 'asdfasdf',
 	foo: 'baz',
 	other: Object.assign(Object.create(null), {
-		foo: 'asdf'
+		foo: 'asdf',
 	}),
 	kid: Object.assign(Object.create(null), {
 		foo: Object.assign(Object.create(null), {
-			foo: 'kid'
-		})
+			foo: 'kid',
+		}),
 	}),
 	arrproto: Object.assign(Object.create(null), {
 		hello: 'snyk',
-		thanks: true
+		thanks: true,
 	}),
 	ctor: Object.assign(Object.create(null), {
 		constructor: Object.assign(Object.create(null), {
 			prototype: Object.assign(Object.create(null), {
-				foo: 'asdfasdf'
-			})
-		})
-	})
+				foo: 'asdfasdf',
+			}),
+		}),
+	}),
 }));
-t.equal(res.__proto__, undefined);
-t.equal(res.kid.__proto__, undefined);
-t.equal(res.kid.foo.__proto__, undefined);
-t.equal(res.arrproto.__proto__, undefined);
-t.equal(Object.prototype.foo, undefined);
-t.equal(Object.prototype[0], undefined);
-t.equal(Object.prototype['0'], undefined);
-t.equal(Object.prototype[1], undefined);
-t.equal(Object.prototype['1'], undefined);
-t.equal(Array.prototype[0], undefined);
-t.equal(Array.prototype[1], undefined);
+tap.equal(res.__proto__, undefined);
+tap.equal(res.kid.__proto__, undefined);
+tap.equal(res.kid.foo.__proto__, undefined);
+tap.equal(res.arrproto.__proto__, undefined);
+tap.equal(Object.prototype.foo, undefined);
+tap.equal(Object.prototype[0], undefined);
+tap.equal(Object.prototype['0'], undefined);
+tap.equal(Object.prototype[1], undefined);
+tap.equal(Object.prototype['1'], undefined);
+tap.equal(Array.prototype[0], undefined);
+tap.equal(Array.prototype[1], undefined);

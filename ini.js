@@ -4,51 +4,52 @@ const {hasOwnProperty} = Object.prototype;
 
 const eol = require('os').EOL;
 
-const encode = (obj, opt) => {
+const encode = (obj, options) => {
 	const children = [];
 	let out = '';
 
 	// opt.section is passed in recursively. If passed in on top-level, it'll affect both the top-level ini keys, and any children
-	if(typeof opt === 'string'){
-		opt = {
-			section: opt,
+	if(typeof options === 'string'){
+		options = {
+			section: options,
 			whitespace: false,
-			inlineArrays: false
+			inlineArrays: false,
 		};
 	}else{
-		opt = opt || Object.create(null);
-		opt.whitespace = opt.whitespace === true;
+		options = options || Object.create(null);
+		options.whitespace = options.whitespace === true;
 	}
-	const separator = opt.whitespace ? ' = ' : '=';
+	const separator = options.whitespace ? ' = ' : '=';
 
 	for(const [key, val] of Object.entries(obj)){
 		if(val && Array.isArray(val)){
 			for(const item of val){
-				if(opt.inlineArrays){
-					out += safe(key) + separator + safe(item) + eol;
+				if(options.inlineArrays){
+					out += safe(key, null, options) + separator + safe(item, null, options) + eol;
 				}else{
 					// real code
-					out += safe(key + '[]') + separator + safe(item) + eol;
+					out += safe(key + '[]', null, options) + separator + safe(item, null, options) + eol;
 				}
 			}
 		}else if(val && typeof val === 'object'){
 			children.push(key);
 		}else{
-			out += safe(key) + separator + safe(val) + eol;
+			out += safe(key, null, options) + separator + safe(val, key, options) + eol;
 		}
 	}
 
-	if(opt.section && out.length > 0){
-		out = '[' + safe(opt.section) + ']' + eol + out;
+	if(options.section && out.length > 0){
+		out = '[' + safe(options.section, null, options) + ']' + eol + out;
 	}
 
 	for(const key of children){
 		const parsedSection = dotSplit(key).join('\\.');
-		const section = (opt.section ? opt.section + '.' : '') + parsedSection;
+		const section = (options.section ? options.section + '.' : '') + parsedSection;
 		const child = encode(obj[key], {
 			section: section,
-			whitespace: opt.whitespace,
-			inlineArrays: opt.inlineArrays
+			whitespace: options.whitespace,
+			inlineArrays: options.inlineArrays,
+			forceStringifyKeys: options.forceStringifyKeys,
 		});
 		if(out.length > 0 && child.length > 0){
 			out += eol;
@@ -65,8 +66,8 @@ const dotSplit = str => str.replace(/\1/g, '\u0002LITERAL\\1LITERAL\u0002')
 	.map(part => part.replace(/\1/g, '\\.')
 		.replace(/\2LITERAL\\1LITERAL\2/g, '\u0001'));
 
-const decode = (str, opt = {}) => {
-	const defaultValue = typeof opt.defaultValue !== 'undefined' ? opt.defaultValue : '';
+const decode = (str, options = {}) => {
+	const defaultValue = typeof options.defaultValue !== 'undefined' ? options.defaultValue : '';
 
 	const out = Object.create(null);
 	let ref = out;
@@ -112,7 +113,7 @@ const decode = (str, opt = {}) => {
 			}else if(!Array.isArray(ref[key])){
 				ref[key] = [ref[key]];
 			}
-		}else if(opt.inlineArrays && typeof(ref[key]) !== 'undefined' && !Array.isArray(ref[key])){
+		}else if(options.inlineArrays && typeof(ref[key]) !== 'undefined' && !Array.isArray(ref[key])){
 			ref[key] = [ref[key]];
 		}
 
@@ -136,7 +137,6 @@ const decode = (str, opt = {}) => {
 		// if so, add it to that, and mark this one for deletion
 		const parts = dotSplit(key);
 		let outPart = out;
-		console.log('parts', parts);
 		const lastKey = parts.pop();
 		const unescapedLastKey = lastKey.replace(/\\\./g, '.');
 		for(const part of parts){
@@ -164,9 +164,13 @@ const decode = (str, opt = {}) => {
 const isQuoted = val => (val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"));
 
 // escapes the string val such that it is safe to be used as a key or value in an ini-file. Basically escapes quotes
-const safe = (val) => {
+const safe = (val, key, options = {}) => {
 	// all kinds of values and keys
 	if(typeof val !== 'string' || /[\n\r=]/.test(val) || /^\[/.test(val) || (val.length > 1 && isQuoted(val)) || val !== val.trim()){
+		return JSON.stringify(val);
+	}
+	// force stringify certain keys
+	if(key && options.forceStringifyKeys && options.forceStringifyKeys.includes(key)){
 		return JSON.stringify(val);
 	}
 	// comments
@@ -225,5 +229,5 @@ module.exports = {
 	stringify: encode,
 	encode,
 	safe,
-	unsafe
+	unsafe,
 };

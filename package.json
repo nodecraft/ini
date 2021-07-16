@@ -1,6 +1,6 @@
 {
 	"name": "@nodecraft/ini",
-	"version": "2.1.2",
+	"version": "2.2.0",
 	"description": "An ini encoder/decoder for node",
 	"repository": {
 		"type": "git",
@@ -21,12 +21,12 @@
 	},
 	"dependencies": {},
 	"devDependencies": {
-		"eslint": "^7.18.0",
-		"eslint-config-nodecraft": "^7.2.0",
-		"eslint-plugin-json": "^2.1.2",
+		"@nodecraft/eslint-config": "^9.0.0",
+		"eslint": "^7.30.0",
+		"eslint-plugin-json": "^3.0.0",
 		"eslint-plugin-node": "^11.1.0",
-		"eslint-plugin-unicorn": "^26.0.1",
-		"tap": "^14"
+		"eslint-plugin-unicorn": "^34.0.1",
+		"tap": "^15"
 	},
 	"engines": {
 		"node": ">=12.20.0",
