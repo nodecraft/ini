@@ -314,3 +314,9 @@ test("unsafe escape values", function(t){
 	t.equal(ini.unsafe('x "\\'), 'x "\\');
 	t.end();
 });
+
+test("safe escape tests", function(t){
+	t.equal(ini.safe('abc'), 'abc');
+	t.equal(ini.safe('abc', 'someKey', {forceStringifyKeys: ['someKey']}), '"abc"');
+	t.end();
+});
