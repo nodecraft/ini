@@ -4,6 +4,10 @@ const {hasOwnProperty} = Object.prototype;
 
 const eol = require('os').EOL;
 
+function isConstructorOrProto(obj, key){
+	return key === 'constructor' && typeof obj[key] === 'function' || key === '__proto__';
+}
+
 const encode = (obj, options) => {
 	const children = [];
 	let out = '';
@@ -82,7 +86,7 @@ const decode = (str, options = {}) => {
 		if(!match){ continue; }
 		if(match[1] !== undefined){
 			section = unsafe(match[1]);
-			if(section === '__proto__'){
+			if(isConstructorOrProto(out, section)){
 				// not allowed
 				// keep parsing the section, but don't attach it.
 				ref = Object.create(null);
@@ -92,7 +96,7 @@ const decode = (str, options = {}) => {
 			continue;
 		}
 		let key = unsafe(match[2]);
-		if(key === '__proto__'){ continue; }
+		if(isConstructorOrProto(ref, key)){ continue; }
 		let value = match[3] ? unsafe(match[3]) : defaultValue;
 		switch(value){
 			case 'true':
@@ -107,7 +111,7 @@ const decode = (str, options = {}) => {
 		// Convert keys with '[]' suffix to an array
 		if(key.length > 2 && key.slice(-2) === '[]'){
 			key = key.slice(0, Math.max(0, key.length - 2));
-			if(key === '__proto__'){ continue; }
+			if(isConstructorOrProto(ref, key)){ continue; }
 			if(!hasOwnProperty.call(ref, key)){
 				ref[key] = [];
 			}else if(!Array.isArray(ref[key])){
@@ -140,7 +144,7 @@ const decode = (str, options = {}) => {
 		const lastKey = parts.pop();
 		const unescapedLastKey = lastKey.replace(/\\\./g, '.');
 		for(const part of parts){
-			if(part === '__proto__'){ continue; }
+			if(isConstructorOrProto(outPart, part)){ continue; }
 			if(!hasOwnProperty.call(outPart, part) || typeof outPart[part] !== 'object'){
 				outPart[part] = Object.create(null);
 			}
