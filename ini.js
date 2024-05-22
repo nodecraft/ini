@@ -2,8 +2,6 @@
 /* eslint-disable no-use-before-define */
 const {hasOwnProperty} = Object.prototype;
 
-const eol = require('os').EOL;
-
 function isConstructorOrProto(obj, key){
 	return key === 'constructor' && typeof obj[key] === 'function' || key === '__proto__';
 }
@@ -23,6 +21,9 @@ const encode = (obj, options) => {
 		options = options || Object.create(null);
 		options.whitespace = options.whitespace === true;
 	}
+	options.platform = options.platform || (typeof process !== 'undefined' && process.platform);
+	const eol = options.platform === 'win32' ? '\r\n' : '\n';
+
 	const separator = options.whitespace ? ' = ' : '=';
 
 	for(const [key, val] of Object.entries(obj)){
