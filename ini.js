@@ -16,6 +16,7 @@ const encode = (obj, options) => {
 			section: options,
 			whitespace: false,
 			inlineArrays: false,
+			allowEmptySection: false,
 		};
 	}else{
 		options = options || Object.create(null);
@@ -43,7 +44,7 @@ const encode = (obj, options) => {
 		}
 	}
 
-	if(options.section && out.length > 0){
+	if((options.section && out.length > 0) || (children.length === 0 && options.allowEmptySection)){
 		out = '[' + safe(options.section, null, options) + ']' + eol + out;
 	}
 
@@ -55,6 +56,7 @@ const encode = (obj, options) => {
 			whitespace: options.whitespace,
 			inlineArrays: options.inlineArrays,
 			forceStringifyKeys: options.forceStringifyKeys,
+			allowEmptySection: options.allowEmptySection,
 		});
 		if(out.length > 0 && child.length > 0){
 			out += eol;

@@ -39,6 +39,13 @@ Sometimes you need to write strings into an `ini` file with quotes around them, 
 By passing an array of `forceStringifyKeys`, you can specify which keys are forced stringified with `JSON.stringify` and therefore maintain their quotes.
 Note: This is pretty limited currently in that it doesn't account for the same key being in different sections, but covers our current use-case.
 
+## New `allowEmptySection` optoin
+If you want to allow empty sections, you can set this option to `true`.
+```ini
+    [section]
+```
+Previously, this would omit the section entirely on encode. Now, it will be included in the output.
+
 ## Usage
 
 Consider an ini-file `config.ini` that looks like this:
@@ -121,6 +128,7 @@ The `options` object may contain the following:
   `=` character.  By default, whitespace is omitted, to be friendly to
   some persnickety old parsers that don't tolerate it well.  But some
   find that it's more human-readable and pretty with the whitespace.
+* `allowEmptySection` Whether to allow empty sections. Defaults to `false`.
 
 For backwards compatibility reasons, if a `string` options is passed
 in, then it is assumed to be the `section` value.
