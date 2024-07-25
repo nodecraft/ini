@@ -1,6 +1,6 @@
 {
 	"name": "@nodecraft/ini",
-	"version": "2.2.2",
+	"version": "2.3.0",
 	"description": "An ini encoder/decoder for node",
 	"repository": {
 		"type": "git",
