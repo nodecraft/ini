@@ -39,7 +39,7 @@ Sometimes you need to write strings into an `ini` file with quotes around them, 
 By passing an array of `forceStringifyKeys`, you can specify which keys are forced stringified with `JSON.stringify` and therefore maintain their quotes.
 Note: This is pretty limited currently in that it doesn't account for the same key being in different sections, but covers our current use-case.
 
-## New `allowEmptySection` optoin
+## New `allowEmptySection` option
 If you want to allow empty sections, you can set this option to `true`.
 ```ini
     [section]
