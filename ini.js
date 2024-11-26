@@ -58,6 +58,7 @@ const encode = (obj, options) => {
 			inlineArrays: options.inlineArrays,
 			forceStringifyKeys: options.forceStringifyKeys,
 			allowEmptySection: options.allowEmptySection,
+			exactValue: options.exactValue,
 		});
 		if(out.length > 0 && child.length > 0){
 			out += eol;
@@ -103,7 +104,7 @@ const decode = (str, options = {}) => {
 		if(isConstructorOrProto(ref, key)){ continue; }
 		let value = null;
 		if(options.exactValue){
-			value = match[3];
+			value = match[3] ? unsafeExact(match[3]) : defaultValue;
 		}else{
 			value = match[3] ? unsafe(match[3]) : defaultValue;
 		}
@@ -238,6 +239,23 @@ const unsafe = (val) => {
 		escapedVal += '\\';
 	}
 	return escapedVal.trim();
+};
+
+const unsafeExact = (val) => {
+	val = (val || '').trim();
+	if(isQuoted(val)){
+		// remove the single quotes before calling JSON.parse
+		if(val.charAt(0) === "'"){
+			val = val.substr(1, val.length - 2); // eslint-disable-line unicorn/prefer-string-slice
+		}
+		try{
+			val = JSON.parse(val);
+		}catch{
+			// we tried :(
+		}
+		return val;
+	}
+	return val.trim();
 };
 
 module.exports = {
