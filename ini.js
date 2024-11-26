@@ -17,6 +17,7 @@ const encode = (obj, options) => {
 			whitespace: false,
 			inlineArrays: false,
 			allowEmptySection: false,
+			exactValue: false,
 		};
 	}else{
 		options = options || Object.create(null);
@@ -100,7 +101,12 @@ const decode = (str, options = {}) => {
 		}
 		let key = unsafe(match[2]);
 		if(isConstructorOrProto(ref, key)){ continue; }
-		let value = match[3] ? unsafe(match[3]) : defaultValue;
+		let value = null;
+		if(options.exactValue){
+			value = match[3];
+		}else{
+			value = match[3] ? unsafe(match[3]) : defaultValue;
+		}
 		switch(value){
 			case 'true':
 			case 'True':
@@ -179,6 +185,10 @@ const safe = (val, key, options = {}) => {
 	// force stringify certain keys
 	if(key && options.forceStringifyKeys && options.forceStringifyKeys.includes(key)){
 		return JSON.stringify(val);
+	}
+	if(options.exactValue){
+		// Don't try to escape a comment in a value
+		return val;
 	}
 	// comments
 	return val.replace(/;/g, '\\;').replace(/#/g, '\\#');
