@@ -17,6 +17,7 @@ const encode = (obj, options) => {
 			whitespace: false,
 			inlineArrays: false,
 			allowEmptySection: false,
+			exactValue: false,
 		};
 	}else{
 		options = options || Object.create(null);
@@ -57,6 +58,7 @@ const encode = (obj, options) => {
 			inlineArrays: options.inlineArrays,
 			forceStringifyKeys: options.forceStringifyKeys,
 			allowEmptySection: options.allowEmptySection,
+			exactValue: options.exactValue,
 		});
 		if(out.length > 0 && child.length > 0){
 			out += eol;
@@ -100,7 +102,12 @@ const decode = (str, options = {}) => {
 		}
 		let key = unsafe(match[2]);
 		if(isConstructorOrProto(ref, key)){ continue; }
-		let value = match[3] ? unsafe(match[3]) : defaultValue;
+		let value = null;
+		if(options.exactValue){
+			value = match[3] ? unsafeExact(match[3]) : defaultValue;
+		}else{
+			value = match[3] ? unsafe(match[3]) : defaultValue;
+		}
 		switch(value){
 			case 'true':
 			case 'True':
@@ -180,6 +187,10 @@ const safe = (val, key, options = {}) => {
 	if(key && options.forceStringifyKeys && options.forceStringifyKeys.includes(key)){
 		return JSON.stringify(val);
 	}
+	if(options.exactValue){
+		// Don't try to escape a comment in a value
+		return val;
+	}
 	// comments
 	return val.replace(/;/g, '\\;').replace(/#/g, '\\#');
 };
@@ -216,7 +227,11 @@ const unsafe = (val) => {
 			}
 			isEscaping = false;
 		}else if(commentChars.includes(char)){
-			break;
+			// Check if there's spaces around this comment character
+			// If there is, then we're done parsing at the character before this one
+			if(val.charAt(i - 1) === ' ' && val.charAt(i + 1) === ' '){
+				break;
+			}
 		}else if(char === '\\'){
 			isEscaping = true;
 		}else{
@@ -228,6 +243,23 @@ const unsafe = (val) => {
 		escapedVal += '\\';
 	}
 	return escapedVal.trim();
+};
+
+const unsafeExact = (val) => {
+	val = (val || '').trim();
+	if(isQuoted(val)){
+		// remove the single quotes before calling JSON.parse
+		if(val.charAt(0) === "'"){
+			val = val.substr(1, val.length - 2); // eslint-disable-line unicorn/prefer-string-slice
+		}
+		try{
+			val = JSON.parse(val);
+		}catch{
+			// we tried :(
+		}
+		return val;
+	}
+	return val.trim();
 };
 
 module.exports = {
