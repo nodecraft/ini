@@ -232,6 +232,7 @@ const unsafe = (val) => {
 			if(val.charAt(i - 1) === ' ' && val.charAt(i + 1) === ' '){
 				break;
 			}
+			escapedVal += char;
 		}else if(char === '\\'){
 			isEscaping = true;
 		}else{
