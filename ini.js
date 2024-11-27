@@ -227,7 +227,11 @@ const unsafe = (val) => {
 			}
 			isEscaping = false;
 		}else if(commentChars.includes(char)){
-			break;
+			// Check if there's spaces around this comment character
+			// If there is, then we're done parsing at the character before this one
+			if(val.charAt(i - 1) === ' ' && val.charAt(i + 1) === ' '){
+				break;
+			}
 		}else if(char === '\\'){
 			isEscaping = true;
 		}else{

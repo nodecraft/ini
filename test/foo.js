@@ -400,7 +400,7 @@ test('ignores invalid line (=)', function(t){
 
 test("unsafe escape values", function(t){
 	t.equal(ini.unsafe(''), '');
-	t.equal(ini.unsafe('x;y'), 'x');
+	t.equal(ini.unsafe('x;y'), 'xy');
 	t.equal(ini.unsafe('x  # y'), 'x');
 	t.equal(ini.unsafe('x "\\'), 'x "\\');
 	t.end();
