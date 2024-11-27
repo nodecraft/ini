@@ -46,6 +46,13 @@ If you want to allow empty sections, you can set this option to `true`.
 ```
 Previously, this would omit the section entirely on encode. Now, it will be included in the output.
 
+## New `exactValue` option
+If you want to preserve all characters in a value, you can set this option to `true`.
+```ini
+    key=some string ; comment
+```
+Previously, this would be parsed as `some string` and not `some string ; comment`.
+
 ## Usage
 
 Consider an ini-file `config.ini` that looks like this:
