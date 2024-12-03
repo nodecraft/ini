@@ -47,7 +47,7 @@ const expectE = 'o=p' + eol
             + 'x.y.z=xyz' + eol + eol
             + '[x\\.y\\.z.a\\.b\\.c]' + eol
             + 'a.b.c=abc' + eol
-            + 'nocomment=this\\; this is not a comment' + eol
+            + 'nocomment=this; this is not a comment' + eol
             + 'noHashComment=this\\# this is not a comment' + eol;
 const expectEInlineArrays = 'o=p' + eol
             + 'a with spaces=b  c' + eol
@@ -81,7 +81,7 @@ const expectEInlineArrays = 'o=p' + eol
             + 'x.y.z=xyz' + eol + eol
             + '[x\\.y\\.z.a\\.b\\.c]' + eol
             + 'a.b.c=abc' + eol
-            + 'nocomment=this\\; this is not a comment' + eol
+            + 'nocomment=this; this is not a comment' + eol
             + 'noHashComment=this\\# this is not a comment' + eol;
 const expectforceStringifyKeys = 'o=p' + eol
 			+ 'a with spaces=b  c' + eol
@@ -115,7 +115,7 @@ const expectforceStringifyKeys = 'o=p' + eol
 			+ 'x.y.z=xyz' + eol + eol
 			+ '[x\\.y\\.z.a\\.b\\.c]' + eol
 			+ 'a.b.c=abc' + eol
-			+ 'nocomment=this\\; this is not a comment' + eol
+			+ 'nocomment=this; this is not a comment' + eol
 			+ 'noHashComment=this\\# this is not a comment' + eol;
 const expectExactValues = 'o=p' + eol
             + 'a with spaces=b  c' + eol
@@ -409,5 +409,6 @@ test("unsafe escape values", function(t){
 test("safe escape tests", function(t){
 	t.equal(ini.safe('abc'), 'abc');
 	t.equal(ini.safe('abc', 'someKey', {forceStringifyKeys: ['someKey']}), '"abc"');
+	t.equal(ini.safe('x;y'), 'x;y');
 	t.end();
 });
