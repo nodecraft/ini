@@ -192,7 +192,7 @@ const safe = (val, key, options = {}) => {
 		return val;
 	}
 	// comments
-	return val.replace(/;/g, '\\;').replace(/#/g, '\\#');
+	return val.replace(/\s;\s/g, '\\;').replace(/#/g, '\\#');
 };
 
 // unescapes the string val
