@@ -412,3 +412,111 @@ test("safe escape tests", function(t){
 	t.equal(ini.safe('x;y'), 'x;y');
 	t.end();
 });
+
+test("encode with newline", function(t){
+	const obj = {log: {type: 'file', level: {label: 'debug', value: 10}}};
+	const e = ini.encode(obj, {newline: true});
+	const expected = '[log]' + eol + eol
+		+ 'type=file' + eol + eol
+		+ '[log.level]' + eol + eol
+		+ 'label=debug' + eol
+		+ 'value=10' + eol;
+	t.equal(e, expected);
+	t.end();
+});
+
+test("encode with sort", function(t){
+	const obj = {z: 1, a: 2, m: 3};
+	const e = ini.encode(obj);
+	t.equal(e, 'z=1' + eol + 'a=2' + eol + 'm=3' + eol);
+	const eSorted = ini.encode(obj, {sort: true});
+	t.equal(eSorted, 'a=2' + eol + 'm=3' + eol + 'z=1' + eol);
+	t.end();
+});
+
+test("encode with align", function(t){
+	const obj = {short: 1, longerKey: 2, x: 3};
+	const e = ini.encode(obj, {align: true});
+	// align implies whitespace, padded to longest key
+	t.ok(e.includes('short     = 1'));
+	t.ok(e.includes('longerKey = 2'));
+	t.ok(e.includes('x         = 3'));
+	t.end();
+});
+
+test("encode with bracketedArray=false", function(t){
+	const obj = {ar: ['one', 'two', 'three']};
+	const e = ini.encode(obj, {bracketedArray: false});
+	// Should use duplicate keys, not key[]
+	t.equal(e, 'ar=one' + eol + 'ar=two' + eol + 'ar=three' + eol);
+	t.end();
+});
+
+test("encode with bracketedArray=true (default)", function(t){
+	const obj = {ar: ['one', 'two', 'three']};
+	const e = ini.encode(obj);
+	// Should use key[]
+	t.equal(e, 'ar[]=one' + eol + 'ar[]=two' + eol + 'ar[]=three' + eol);
+	t.end();
+});
+
+test("decode with bracketedArray=false", function(t){
+	const input = 'ar=one' + eol + 'ar=two' + eol + 'ar=three' + eol + 'single=val' + eol;
+	const d = ini.decode(input, {bracketedArray: false});
+	t.same(d.ar, ['one', 'two', 'three']);
+	t.equal(d.single, 'val');
+	t.end();
+});
+
+test("decode bracketedArray=false strips [] from keys", function(t){
+	const input = 'ar[]=one' + eol + 'ar[]=two' + eol;
+	const d = ini.decode(input, {bracketedArray: false});
+	t.same(d, {'ar': ['one', 'two']});
+	t.end();
+});
+
+test("decode section with trailing whitespace", function(t){
+	const input = '[section]  ' + eol + 'key=value' + eol;
+	const d = ini.decode(input);
+	t.same(d, {section: {key: 'value'}});
+	t.end();
+});
+
+test("decode ignores // comments", function(t){
+	const input = '// this is a comment' + eol + 'key=value' + eol + '  // indented comment' + eol + 'key2=value2' + eol;
+	const d = ini.decode(input);
+	t.same(d, {key: 'value', key2: 'value2'});
+	t.end();
+});
+
+test("encode with align and arrays", function(t){
+	const obj = {short: 1, ar: ['one', 'two']};
+	const e = ini.encode(obj, {align: true});
+	// array keys get [] suffix, align pads to longest key
+	t.ok(e.includes('ar[]  = one'));
+	t.ok(e.includes('short = 1'));
+	t.end();
+});
+
+test("decode exactValue with key without value", function(t){
+	const input = 'novalue' + eol + 'hasvalue=test' + eol;
+	const d = ini.decode(input, {exactValue: true});
+	t.equal(d.novalue, '');
+	t.equal(d.hasvalue, 'test');
+	t.end();
+});
+
+test("decode bracketedArray=false with proto[] key", function(t){
+	const input = '__proto__[]=bad' + eol + 'safe=ok' + eol;
+	const d = ini.decode(input, {bracketedArray: false});
+	t.equal(d.__proto__, undefined);
+	t.equal(d.safe, 'ok');
+	t.end();
+});
+
+test("encode with platform=win32", function(t){
+	const obj = {key: 'value'};
+	const e = ini.encode(obj, {platform: 'win32'});
+	t.ok(e.includes('\r\n'));
+	t.end();
+});

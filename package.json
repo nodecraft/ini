@@ -1,6 +1,6 @@
 {
 	"name": "@nodecraft/ini",
-	"version": "2.4.1",
+	"version": "2.5.0",
 	"description": "An ini encoder/decoder for node",
 	"repository": {
 		"type": "git",
@@ -13,23 +13,21 @@
 	],
 	"main": "ini.js",
 	"scripts": {
-		"coverage": "tap test/*.js --100 --coverage-report=lcov -J",
+		"coverage": "tap test/*.js --coverage-report=lcov",
 		"pretest": "eslint ini.js",
-		"test": "tap test/*.js --100 -J",
+		"test": "tap test/*.js",
 		"preversion": "npm test",
 		"postversion": "npm publish"
 	},
-	"dependencies": {},
 	"devDependencies": {
-		"@nodecraft/eslint-config": "^16.0.0",
-		"eslint": "^8.12.0",
-		"eslint-plugin-json": "^3.1.0",
-		"eslint-plugin-node": "^11.1.0",
-		"eslint-plugin-unicorn": "^41.0.1",
-		"tap": "^16"
+		"@nodecraft/eslint-config": "^46.0.0",
+		"eslint": "^8.57.1",
+		"eslint-plugin-json": "^4.0.1",
+		"eslint-plugin-unicorn": "^56.0.1",
+		"tap": "^21.6.2"
 	},
 	"engines": {
-		"node": ">=16",
+		"node": ">=20",
 		"npm": ">=8"
 	}
 }
