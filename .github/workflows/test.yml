@@ -23,4 +23,4 @@ jobs:
         uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.github_token }}
-          files: ./tap/report/lcov.info
+          files: .tap/report/lcov.info
