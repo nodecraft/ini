@@ -520,3 +520,10 @@ test("encode with platform=win32", function(t){
 	t.ok(e.includes('\r\n'));
 	t.end();
 });
+
+test("encode with platform=linux", function(t){
+	const obj = {key: 'value'};
+	const e = ini.encode(obj, {platform: 'linux'});
+	t.equal(e, 'key=value\n');
+	t.end();
+});
