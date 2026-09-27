@@ -1,6 +1,8 @@
 'use strict';
 /* eslint-disable no-use-before-define */
 const { hasOwnProperty } = Object.prototype;
+const NEEDS_UNSAFE_WALK = /[#;\\]/;
+const COMMENT_CHARS = /[#;]/;
 
 function isConstructorOrProto(obj, key) {
 	return (key === 'constructor' && typeof obj[key] === 'function') || key === '__proto__';
@@ -136,7 +138,13 @@ const decode = (str, options = {}) => {
 				ref = Object.create(null);
 				continue;
 			}
-			ref = out[section] = out[section] || Object.create(null);
+			const existing = out[section];
+			if (existing && typeof existing !== 'object') {
+				// A key already holds a value by this name; like npm/ini, keep it and drop the section's entries rather than throw
+				ref = Object.create(null);
+				continue;
+			}
+			ref = out[section] = existing || Object.create(null);
 			continue;
 		}
 		let key = unsafe(match[2]);
@@ -246,6 +254,10 @@ const safe = (val, key, options = {}) => {
 		// Don't try to escape a comment in a value
 		return val;
 	}
+	// Both replacements below need a ; or #, and most values have neither
+	if (!COMMENT_CHARS.test(val)) {
+		return val;
+	}
 	// comments
 	return val.replaceAll(/\s;\s/g, '\\;').replaceAll('#', '\\#');
 };
@@ -266,6 +278,10 @@ const unsafe = (val) => {
 		} catch {
 			// we tried :(
 		}
+		return val;
+	}
+	// Most values have nothing to unescape or strip, and the walk below would copy them unchanged
+	if (!NEEDS_UNSAFE_WALK.test(val)) {
 		return val;
 	}
 	// walk the val to find the first not-escaped ; character
